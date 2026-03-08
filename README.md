@@ -9,11 +9,11 @@ A simple chat-based web application powered by a Large Language Model (LLM). Ask
 │   Browser   │ ◄───────────────► │   Flask     │ ◄─────────────────────►  LLMInterface
 │  (chat UI)  │                   │   app.py    │      prompt (string)        (Gemini)
 └─────────────┘                   └──────┬─────┘      response (string)
-                                           │
-                                           ▼
-                                    ┌──────────────┐
-                                    │  Gemini API  │
-                                    └──────────────┘
+                                         │
+                                         ▼
+                                  ┌──────────────┐
+                                  │  Gemini API  │
+                                  └──────────────┘
 ```
 
 - **Frontend:** Single-page chat UI (`templates/index.html`) with sidebar topics, suggestion cards, and a message list. All messages go to `POST /api/prompt`.
@@ -38,23 +38,7 @@ pip install -r requirements.txt
 
 ### 2. Set your Gemini API key
 
-**Windows (PowerShell):**
-
-```powershell
 $env:GEMINI_API_KEY = "your-gemini-api-key"
-```
-
-**Windows (CMD):**
-
-```cmd
-set GEMINI_API_KEY=your-gemini-api-key
-```
-
-**Linux / macOS:**
-
-```bash
-export GEMINI_API_KEY=your-gemini-api-key
-```
 
 Get an API key from [Google AI Studio](https://aistudio.google.com/apikey).
 
@@ -65,13 +49,6 @@ python app.py
 ```
 
 Open **http://127.0.0.1:5000/** in your browser and use the chat.
-
-### Optional: different port
-
-```bash
-set PORT=8080
-python app.py
-```
 
 ## API
 
