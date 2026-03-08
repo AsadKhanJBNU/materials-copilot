@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Materials Copilot — Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #f7f8fa;
+      --white: #ffffff;
+      --border: #e4e7ed;
+      --border-light: #f0f2f5;
+      --text: #1a1d23;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+      --accent: #2563eb;
+      --accent-light: #eff4ff;
+      --accent-hover: #1d4ed8;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      height: 56px;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+    }
+
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-mark {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-name { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
+    .logo-name span { color: var(--accent); }
+
+    .header-right { display: flex; align-items: center; gap: 14px; }
+    .online-badge { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary); }
+    .online-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; }
+    .model-pill {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px; color: var(--text-secondary);
+      background: var(--bg); border: 1px solid var(--border);
+      padding: 4px 10px; border-radius: 20px;
+    }
+
+    .layout { display: flex; flex: 1; overflow: hidden; }
+
+    .sidebar {
+      width: 224px; flex-shrink: 0;
+      background: var(--white); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 14px 10px; overflow-y: auto;
+    }
+    .sidebar::-webkit-scrollbar { width: 0; }
+
+    .new-btn {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%; padding: 9px 12px;
+      background: var(--accent); color: white; border: none;
+      border-radius: 8px; font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      margin-bottom: 14px; transition: background 0.15s;
+    }
+    .new-btn:hover { background: var(--accent-hover); }
+
+    .section-label {
+      font-size: 10.5px; font-weight: 600; color: var(--text-muted);
+      letter-spacing: 0.8px; text-transform: uppercase;
+      padding: 2px 8px 6px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 10px; border-radius: 7px;
+      font-size: 13px; color: var(--text-secondary);
+      cursor: pointer; transition: all 0.12s;
+      border: none; background: none;
+      width: 100%; text-align: left; margin-bottom: 2px;
+    }
+    .nav-item:hover { background: var(--bg); color: var(--text); }
+    .nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+    .nav-icon { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.55; }
+    .nav-item.active .nav-icon { opacity: 1; }
+
+    .divider { height: 1px; background: var(--border-light); margin: 10px 0; }
+
+    .history-item {
+      padding: 6px 10px; border-radius: 6px;
+      font-size: 12px; color: var(--text-muted);
+      cursor: pointer; transition: all 0.12s;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    .history-item:hover { background: var(--bg); color: var(--text-secondary); }
+
+    .chat { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    .messages {
+      flex: 1; overflow-y: auto; padding: 28px 0;
+      display: flex; flex-direction: column;
+    }
+    .messages::-webkit-scrollbar { width: 4px; }
+    .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .welcome {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      flex: 1; padding: 40px 28px;
+      animation: up 0.4s ease;
+    }
+    @keyframes up {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .welcome-icon {
+      width: 48px; height: 48px; background: var(--accent);
+      border-radius: 13px; display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+    }
+    .welcome h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 8px; }
+    .welcome p {
+      font-size: 13.5px; color: var(--text-secondary); text-align: center;
+      max-width: 360px; line-height: 1.65; margin-bottom: 28px; font-weight: 300;
+    }
+
+    .suggestions {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      max-width: 500px; width: 100%;
+    }
+    .sug-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 14px;
+      cursor: pointer; transition: all 0.15s; text-align: left;
+    }
+    .sug-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 2px 10px rgba(37,99,235,0.07);
+    }
+    .sug-tag {
+      font-size: 10px; font-weight: 600; color: var(--accent);
+      letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px;
+    }
+    .sug-text { font-size: 12px; color: var(--text-secondary); line-height: 1.5; font-weight: 300; }
+
+    .msg-row {
+      padding: 10px 28px; display: flex; gap: 11px;
+      animation: up 0.2s ease;
+    }
+    .msg-row.user { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; margin-top: 2px;
+    }
+    .ai-av { background: var(--accent); color: white; }
+    .user-av { background: var(--text); color: white; }
+
+    .msg-content { max-width: 70%; }
+
+    .bubble {
+      padding: 11px 15px; border-radius: 11px;
+      font-size: 13.5px; line-height: 1.7; font-weight: 300;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .msg-row.ai .bubble {
+      background: var(--white); border: 1px solid var(--border);
+      color: var(--text); border-top-left-radius: 3px;
+    }
+    .msg-row.user .bubble {
+      background: var(--accent); color: white;
+      border-top-right-radius: 3px;
+    }
+
+    .timestamp {
+      font-size: 11px; color: var(--text-muted);
+      margin-top: 4px; padding: 0 1px;
+    }
+    .msg-row.user .timestamp { text-align: right; }
+
+    .typing-dots {
+      display: flex; gap: 4px; align-items: center;
+      padding: 12px 15px;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 11px; border-top-left-radius: 3px;
+      width: fit-content;
+    }
+    .typing-dots span {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--text-muted);
+      animation: blink 1.2s infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink {
+      0%, 60%, 100% { opacity: 0.25; }
+      30% { opacity: 1; }
+    }
+
+    .input-zone {
+      padding: 14px 28px 18px; background: var(--bg);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .input-box {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 11px; display: flex; align-items: flex-end; gap: 8px;
+      padding: 10px 12px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .input-box:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.07);
+    }
+    .input-box textarea {
+      flex: 1; border: none; outline: none; background: transparent;
+      resize: none; font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px; color: var(--text); line-height: 1.6;
+      max-height: 110px; min-height: 22px; font-weight: 300;
+    }
+    .input-box textarea::placeholder { color: var(--text-muted); }
+
+    .send-btn {
+      width: 32px; height: 32px; border-radius: 7px;
+      background: var(--accent); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .send-btn:hover { background: var(--accent-hover); }
+    .send-btn:active { transform: scale(0.94); }
+    .send-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .input-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 8px;
+    }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip {
+      font-size: 11.5px; color: var(--text-secondary);
+      background: var(--white); border: 1px solid var(--border);
+      padding: 3px 10px; border-radius: 20px;
+      cursor: pointer; transition: all 0.12s;
+    }
+    .chip:hover {
+      border-color: var(--accent); color: var(--accent);
+      background: var(--accent-light);
+    }
+    .kb-hint { font-size: 11px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" stroke="white" stroke-width="1.5" fill="none"/>
+        <circle cx="8" cy="8" r="2.5" fill="white"/>
+      </svg>
+    </div>
+    <span class="logo-name">Materials <span>Copilot</span></span>
+  </div>
+  <div class="header-right">
+    <div class="online-badge">
+      <div class="online-dot"></div>
+      Online
+    </div>
+    <div class="model-pill">gemini-2.5-flash</div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <button type="button" class="new-btn" id="newChatBtn">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+        <path d="M6.5 1v11M1 6.5h11" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      New Chat
+    </button>
+
+    <div class="section-label">Topics</div>
+    <button type="button" class="nav-item active" data-topic="dft" id="topicDft">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      DFT & Computation
+    </button>
+    <button type="button" class="nav-item" data-topic="materials" id="topicMaterials">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+        <path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" stroke="currentColor" stroke-width="1.4"/>
+      </svg>
+      Materials
+    </button>
+    <button type="button" class="nav-item" data-topic="general" id="topicGeneral">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+        <path d="M2 12L5.5 7L9 9.5L13.5 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      General
+    </button>
+
+    <div class="divider"></div>
+    <div class="section-label">Recent</div>
+    <div class="history-item">Recommend DFT setup for silicon</div>
+    <div class="history-item">Explain k-point sampling</div>
+    <div class="history-item">PBE vs HSE06 for band gap</div>
+  </aside>
+
+  <div class="chat">
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+            <path d="M13 2L23 7.5V18.5L13 24L3 18.5V7.5L13 2Z" stroke="white" stroke-width="1.6" fill="none"/>
+            <circle cx="13" cy="13" r="3.5" fill="white"/>
+          </svg>
+        </div>
+        <h2>Materials Copilot</h2>
+        <p>Ask for DFT setup recommendations, k-points, functionals, or any materials science question. Powered by an LLM.</p>
+        <div class="suggestions">
+          <div class="sug-card" data-prompt="Recommend a DFT setup for silicon to compute band structure. Use PBE.">
+            <div class="sug-tag">DFT</div>
+            <div class="sug-text">Recommend a DFT setup for silicon to compute band structure. Use PBE.</div>
+          </div>
+          <div class="sug-card" data-prompt="Explain k-point sampling in DFT. What is Monkhorst-Pack?">
+            <div class="sug-tag">Concepts</div>
+            <div class="sug-text">Explain k-point sampling in DFT. What is Monkhorst-Pack?</div>
+          </div>
+          <div class="sug-card" data-prompt="What energy cutoff and pseudopotentials would you use for GaAs optical properties?">
+            <div class="sug-tag">DFT</div>
+            <div class="sug-text">What energy cutoff and pseudopotentials would you use for GaAs optical properties?</div>
+          </div>
+          <div class="sug-card" data-prompt="Compare PBE and HSE06 for band gap prediction in oxides.">
+            <div class="sug-tag">Functionals</div>
+            <div class="sug-text">Compare PBE and HSE06 for band gap prediction in oxides.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-zone">
+      <div class="input-box">
+        <textarea id="userInput" rows="1" placeholder="Ask about DFT, materials, k-points, functionals..."
+          aria-label="Message"></textarea>
+        <button type="button" class="send-btn" id="sendBtn" aria-label="Send">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M1.5 7H12.5M8 2.5L12.5 7L8 11.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="input-footer">
+        <div class="chips">
+          <span class="chip" data-prefix="Recommend a DFT setup for ">DFT setup</span>
+          <span class="chip" data-prefix="Explain ">Explain</span>
+          <span class="chip" data-prefix="Compare ">Compare</span>
+          <span class="chip" data-prefix="What is the role of ">Role of</span>
+        </div>
+        <span class="kb-hint">Enter to send · Shift+Enter for new line</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const msgsEl = document.getElementById('messages');
+  const welcomeEl = document.getElementById('welcome');
+  const inputEl = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const newChatBtn = document.getElementById('newChatBtn');
+
+  let started = false;
+  let typingId = null;
+  let currentTopic = 'dft';
+
+  var TOPIC_PLACEHOLDERS = {
+    dft: 'Ask about DFT, k-points, functionals, pseudopotentials...',
+    materials: 'Ask about materials properties, synthesis, characterization...',
+    general: 'Ask anything about materials science or computation...'
+  };
+
+  var TOPIC_SUGGESTIONS = {
+    dft: [
+      { tag: 'DFT', prompt: 'Recommend a DFT setup for silicon to compute band structure. Use PBE.' },
+      { tag: 'Concepts', prompt: 'Explain k-point sampling in DFT. What is Monkhorst-Pack?' },
+      { tag: 'DFT', prompt: 'What energy cutoff and pseudopotentials would you use for GaAs optical properties?' },
+      { tag: 'Functionals', prompt: 'Compare PBE and HSE06 for band gap prediction in oxides.' }
+    ],
+    materials: [
+      { tag: 'Properties', prompt: 'What factors affect the band gap of halide perovskites?' },
+      { tag: 'Synthesis', prompt: 'How is MAPbI3 typically synthesized for solar cells?' },
+      { tag: 'Characterization', prompt: 'Which techniques are used to measure charge carrier mobility in organic semiconductors?' },
+      { tag: 'Applications', prompt: 'What are the main challenges for perovskite solar cell stability?' }
+    ],
+    general: [
+      { tag: 'Explain', prompt: 'Explain the Shockley-Queisser limit for solar cell efficiency.' },
+      { tag: 'Compare', prompt: 'Compare CGCNN and MEGNet for materials property prediction.' },
+      { tag: 'Recommend', prompt: 'Recommend key papers on defect tolerance in halide perovskites.' },
+      { tag: 'Overview', prompt: 'Give a short overview of density functional theory for beginners.' }
+    ]
+  };
+
+  function getSuggestionsHtml(topic) {
+    var list = TOPIC_SUGGESTIONS[topic] || TOPIC_SUGGESTIONS.dft;
+    var html = '';
+    for (var i = 0; i < list.length; i++) {
+      var s = list[i];
+      var prompt = (s.prompt || '').replace(/"/g, '&quot;');
+      html += '<div class="sug-card" data-prompt="' + prompt + '">';
+      html += '<div class="sug-tag">' + escapeHtml(s.tag) + '</div>';
+      html += '<div class="sug-text">' + escapeHtml(s.prompt) + '</div></div>';
+    }
+    return html;
+  }
+
+  function setTopic(topicId) {
+    currentTopic = topicId || 'dft';
+    document.querySelectorAll('.nav-item[data-topic]').forEach(function(x) {
+      x.classList.toggle('active', x.getAttribute('data-topic') === currentTopic);
+    });
+    inputEl.placeholder = TOPIC_PLACEHOLDERS[currentTopic] || TOPIC_PLACEHOLDERS.dft;
+    var welcome = document.getElementById('welcome');
+    if (welcome) {
+      var suggestionsEl = welcome.querySelector('.suggestions');
+      if (suggestionsEl) suggestionsEl.innerHTML = getSuggestionsHtml(currentTopic);
+    }
+  }
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function fillPrompt(text) {
+    inputEl.value = text;
+    inputEl.focus();
+    autoResize(inputEl);
+  }
+
+  function addMsg(role, text) {
+    var row = document.createElement('div');
+    row.className = 'msg-row ' + role;
+    var time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    var label = role === 'ai' ? 'Materials Copilot' : 'You';
+    var bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    var avatar = document.createElement('div');
+    avatar.className = 'avatar ' + (role === 'ai' ? 'ai-av' : 'user-av');
+    avatar.textContent = role === 'ai' ? 'AI' : 'U';
+    var content = document.createElement('div');
+    content.className = 'msg-content';
+    var ts = document.createElement('div');
+    ts.className = 'timestamp';
+    ts.textContent = label + ' · ' + time;
+    content.appendChild(bubble);
+    content.appendChild(ts);
+    row.appendChild(avatar);
+    row.appendChild(content);
+    msgsEl.appendChild(row);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+
+  function showTyping() {
+    if (typingId) return;
+    var row = document.createElement('div');
+    row.className = 'msg-row ai';
+    row.id = 'typing-row';
+    typingId = 'typing-row';
+    row.innerHTML = '<div class="avatar ai-av">AI</div><div class="msg-content"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
+    msgsEl.appendChild(row);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+
+  function removeTyping() {
+    var el = document.getElementById('typing-row');
+    if (el) el.remove();
+    typingId = null;
+  }
+
+  function setLoading(loading) {
+    sendBtn.disabled = loading;
+  }
+
+  function sendMessage() {
+    var text = inputEl.value.trim();
+    if (!text) return;
+
+    if (!started) {
+      welcomeEl.remove();
+      started = true;
+    }
+
+    addMsg('user', text);
+    inputEl.value = '';
+    autoResize(inputEl);
+
+    showTyping();
+    setLoading(true);
+
+    fetch('/api/prompt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: text })
+    })
+      .then(function(res) { return res.text(); })
+      .then(function(raw) {
+        removeTyping();
+        setLoading(false);
+        var data;
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch (_) {
+          addMsg('ai', 'Sorry, the server returned an invalid response. Please try again.');
+          return;
+        }
+        if (data.error) {
+          var detail = data.details ? data.error + '\n' + data.details : data.error;
+          addMsg('ai', detail);
+          return;
+        }
+        addMsg('ai', data.response || '');
+      })
+      .catch(function(err) {
+        removeTyping();
+        setLoading(false);
+        addMsg('ai', 'Request failed: ' + (err.message || 'Network error') + '. Check that the app is running and try again.');
+      });
+  }
+
+  function newChat() {
+    while (msgsEl.firstChild) msgsEl.removeChild(msgsEl.firstChild);
+    var welcome = document.createElement('div');
+    welcome.className = 'welcome';
+    welcome.id = 'welcome';
+    welcome.innerHTML = document.getElementById('welcome-tpl').innerHTML;
+    msgsEl.appendChild(welcome);
+    started = false;
+    inputEl.value = '';
+    autoResize(inputEl);
+    setTopic(currentTopic);
+  }
+
+  msgsEl.addEventListener('click', function(e) {
+    var card = e.target.closest('.sug-card');
+    if (!card) return;
+    var prompt = card.getAttribute('data-prompt') || (card.querySelector('.sug-text') && card.querySelector('.sug-text').textContent);
+    if (prompt) fillPrompt(prompt);
+  });
+
+  inputEl.addEventListener('input', function() { autoResize(inputEl); });
+  inputEl.addEventListener('keydown', handleKey);
+  sendBtn.addEventListener('click', sendMessage);
+  newChatBtn.addEventListener('click', newChat);
+
+  document.querySelectorAll('.chip').forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      var prefix = chip.getAttribute('data-prefix') || '';
+      inputEl.value = prefix;
+      inputEl.focus();
+      autoResize(inputEl);
+    });
+  });
+
+  document.querySelectorAll('.nav-item[data-topic]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var topic = this.getAttribute('data-topic');
+      if (topic) setTopic(topic);
+    });
+  });
+
+  var tpl = document.createElement('div');
+  tpl.id = 'welcome-tpl';
+  tpl.style.display = 'none';
+  tpl.innerHTML = '<div class="welcome-icon"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M13 2L23 7.5V18.5L13 24L3 18.5V7.5L13 2Z" stroke="white" stroke-width="1.6" fill="none"/><circle cx="13" cy="13" r="3.5" fill="white"/></svg></div><h2>Materials Copilot</h2><p>Ask for DFT setup recommendations, k-points, functionals, or any materials science question. Powered by an LLM.</p><div class="suggestions"></div>';
+  document.body.appendChild(tpl);
+
+  setTopic('dft');
+})();
+</script>
+</body>
+</html>
