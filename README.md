@@ -8,7 +8,7 @@ A simple chat-based web application powered by a Large Language Model (LLM). Ask
 ┌─────────────┐     GET /         ┌─────────────┐     POST /api/prompt
 │   Browser   │ ◄───────────────► │   Flask     │ ◄─────────────────────►  LLMInterface
 │  (chat UI)  │                   │   app.py    │      prompt (string)        (Gemini)
-└─────────────┘                   └──────┬─────┘      response (string)
+└─────────────┘                   └──────┬──────┘      response (string)
                                          │
                                          ▼
                                   ┌──────────────┐
