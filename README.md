@@ -67,3 +67,10 @@ materials-copilot/
 ├── requirements.txt
 └── README.md
 ```
+
+# Materials Copilot Video 
+
+
+https://github.com/user-attachments/assets/0f9ea343-d313-49a7-81cf-83c9f8b81bbf
+
+
