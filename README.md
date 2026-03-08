@@ -71,6 +71,9 @@ materials-copilot/
 # Materials Copilot Video 
 
 
-https://github.com/user-attachments/assets/0f9ea343-d313-49a7-81cf-83c9f8b81bbf
+
+https://github.com/user-attachments/assets/1e028736-4792-4d41-9b47-40f102a391f7
+
+
 
 
